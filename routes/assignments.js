@@ -7,6 +7,12 @@ async function getAssignments(req, res) {
     const limit = parseInt(req.query.limit) || 10;
 
     const aggregateQuery = Assignment.aggregate([
+      {
+        $addFields: {
+          // S'assurer que 'id' existe, sinon utiliser _id
+          id: { $ifNull: ['$id', '$_id'] }
+        }
+      },
       { $sort: { id: -1 } }
     ]);
 
@@ -34,12 +40,27 @@ async function getAssignments(req, res) {
 // Récupérer un assignment par son id (GET)
 async function getAssignment(req, res) {
   try {
-    const assignmentId = parseInt(req.params.id, 10);
-    const assignment = await Assignment.findOne({ id: assignmentId });
+    const assignmentId = req.params.id;
+    
+    // Chercher par id (number) ou _id (ObjectId)
+    let assignment = await Assignment.findOne({ id: parseInt(assignmentId, 10) });
+    
+    // Si pas trouvé et que l'id ressemble à un ObjectId, chercher par _id
+    if (!assignment && assignmentId.match(/^[0-9a-fA-F]{24}$/)) {
+      assignment = await Assignment.findById(assignmentId);
+    }
+    
     if (!assignment) {
       return res.status(404).json({ error: 'Assignment not found' });
     }
-    res.json(assignment);
+    
+    // S'assurer que l'id est présent dans la réponse
+    const response = assignment.toJSON();
+    if (!response.id) {
+      response.id = assignment._id;
+    }
+    
+    res.json(response);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
