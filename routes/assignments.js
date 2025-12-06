@@ -48,8 +48,11 @@ async function getAssignment(req, res) {
 // Ajout d'un assignment (POST)
 async function postAssignment(req, res) {
   try {
+    // Générer automatiquement un ID unique basé sur le timestamp et un nombre aléatoire
+    const newId = req.body.id || Date.now() + Math.floor(Math.random() * 1000);
+    
     const assignment = new Assignment({
-      id: req.body.id,
+      id: newId,
       nom: req.body.nom,
       dateDeRendu: req.body.dateDeRendu,
       rendu: req.body.rendu
