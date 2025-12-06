@@ -7,7 +7,7 @@ async function getAssignments(req, res) {
     const limit = parseInt(req.query.limit) || 10;
 
     const aggregateQuery = Assignment.aggregate([
-      { $sort: { id: 1 } }
+      { $sort: { id: -1 } }
     ]);
 
     const result = await Assignment.aggregatePaginate(aggregateQuery, {
@@ -60,7 +60,8 @@ async function postAssignment(req, res) {
 
     console.log('POST assignment reçu:', assignment);
     const savedAssignment = await assignment.save();
-    res.json({ message: `${savedAssignment.nom} saved!`, data: savedAssignment });
+    console.log('Assignment sauvegardé avec ID:', savedAssignment.id);
+    res.json(savedAssignment);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
