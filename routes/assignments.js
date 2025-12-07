@@ -5,6 +5,12 @@ async function getAssignments(req, res) {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search;
+
+    const matchStage = {};
+    if (search) {
+      matchStage.nom = { $regex: search, $options: 'i' };
+    }
 
     const aggregateQuery = Assignment.aggregate([
       {
@@ -13,6 +19,7 @@ async function getAssignments(req, res) {
           id: { $ifNull: ['$id', '$_id'] }
         }
       },
+      { $match: matchStage },
       { $sort: { id: -1 } }
     ]);
 
